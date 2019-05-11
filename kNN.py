@@ -3,7 +3,22 @@ from sklearn.datasets import load_iris
 
 
 class kNN:
-    """k-Nearest Neighbour classifier."""
+    """k-Nearest Neighbour classifier.
+
+    Attributes
+    ----------
+    k: positive int
+        number of nearest neighbours
+    metric: string, {'l1', 'l2'}
+        distance metric
+
+    Methods
+    -------
+    train(X, y):
+        train the kNN classifier
+    predict(X):
+        predict the labels of the input
+    """
 
     def __init__(self, k=1, metric='l1'):
         """Set hyperparameter.
@@ -64,6 +79,11 @@ class kNN:
         ---------
         X: (m, n) ndarray
             feature vectors
+
+        Returns
+        -------
+        (m,) ndarray
+            the predicted labels of the input
         """
         X_extended = np.expand_dims(X, axis=1)  # (m_test, 1, n)
         X_train_extended = np.expand_dims(self._X, axis=0)  # (1, m_train, n)
