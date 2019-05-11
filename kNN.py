@@ -55,8 +55,8 @@ class kNN:
         """
         X_extended = np.expand_dims(X, axis=1)  # (m_test, 1, n)
         X_train_extended = np.expand_dims(self._X, axis=0)  # (1, m_train, n)
-        y_predict = np.argmax(np.sum(np.abs(X_extended - X_train_extended),
-                                     axis=2),
-                              axis=1)
+        y_pred_index = np.argmin(np.sum(np.abs(X_extended - X_train_extended),
+                                        axis=2),
+                                 axis=1)
 
-        return y_predict
+        return self._y[y_pred_index]
