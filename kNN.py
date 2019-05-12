@@ -1,4 +1,5 @@
 import numpy as np
+from collections import Counter
 from sklearn.datasets import load_iris
 
 
@@ -27,12 +28,15 @@ class kNN:
         ---------
         k: int
             number of nearest neighbours
+        metric: str, {'l1', 'l2'}
+            name of the distance metric
         """
         self.k = k
         self.metric = 'l1'
 
     @property
     def k(self):
+        """Number of nearest neighbours."""
         return self._k
 
     @k.setter
@@ -44,6 +48,7 @@ class kNN:
 
     @property
     def metric(self):
+        """Name of the distance metric."""
         return self._metric
 
     @metric.setter
@@ -85,17 +90,40 @@ class kNN:
         (m,) ndarray
             the predicted labels of the input
         """
+        # cut off the number of NN by the number of training examples
+        m_train = self._X.shape[0]
+        k = self._k if (self._k < m_train) else m_train
+
         X_extended = np.expand_dims(X, axis=1)  # (m_test, 1, n)
         X_train_extended = np.expand_dims(self._X, axis=0)  # (1, m_train, n)
         delta_X = X_extended - X_train_extended  # (m_test, m_train, n)
         if self._metric == 'l2':
-            distance = np.sum(np.square(delta_X), axis=-1)  # (m_test, m_train)
+            # distance matrix: (m_test, m_train)
+            distances = np.sum(np.square(delta_X), axis=-1)
         else:
-            distance = np.sum(np.abs(delta_X), axis=-1)
+            distances = np.sum(np.abs(delta_X), axis=-1)
 
-        y_pred_index = np.argmin(distance, axis=-1)
+        # find the indices of the k smallest elements
+        # (m_test, k)
+        k_smallest_indices = np.argpartition(distances, k, axis=-1)[:, :k]
 
-        return self._y[y_pred_index]
+        # self._y[k_smallest_indices] replaces the indices with labels
+        return np.apply_along_axis(kNN.majority_vote,
+                                   -1,
+                                   self._y[k_smallest_indices])
+
+    @staticmethod
+    def majority_vote(arr):
+        """Return the element with the most frequency in arr.
+
+        Parameter
+        ---------
+        arr: (n,) ndarray
+            a one dim array
+        """
+        count = Counter(arr)
+        (elem, _) = count.most_common(1)[0]
+        return elem
 
 
 if __name__ == '__main__':
@@ -105,12 +133,10 @@ if __name__ == '__main__':
     train_id = id[:120]
     test_id = id[120:]
 
-    X_train = iris.data[train_id]
-    X_test = iris.data[test_id]
-    y_train = iris.target[train_id]
-    y_test = iris.target[test_id]
+    X_train, X_test = iris.data[train_id], iris.data[test_id]
+    y_train, y_test = iris.target[train_id], iris.target[test_id]
 
-    nn = kNN(metric='l2')
+    nn = kNN(k=5, metric='l2')
     nn.train(X_train, y_train)
     y_pred = nn.predict(X_test)
     acc = np.sum(y_pred == y_test) / len(y_test)
