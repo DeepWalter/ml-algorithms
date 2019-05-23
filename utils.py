@@ -21,6 +21,24 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
+def sigmoid_grad(x):
+    """Compute the gradient of sigmoid element-wise.
+
+    The gradient of sigmoid at x equals sigmoid(x)*(1 - sigmoid (x)).
+
+    Parameter
+    ---------
+    x: ndarray or scalar
+        input
+    Returns
+    -------
+    ndarray or scalar, same shape of input x
+        element-wise gradient of sigmoid of the input
+    """
+    sigmoid_x = sigmoid(x)
+    return sigmoid_x * (1 - sigmoid_x)
+
+
 def softmax(x, axis=None):
     """Compute the softmax of array elements along a given axis.
 
@@ -38,7 +56,7 @@ def softmax(x, axis=None):
     Returns
     -------
     ndarray, same shape of input x
-        softmax of the input
+        softmax of the input along axis
     """
     exp_x = np.exp(x)
     return exp_x / np.sum(exp_x, axis=axis, keepdims=True)
